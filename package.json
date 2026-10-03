@@ -1,0 +1,53 @@
+{
+  "name": "auratrix-store",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:prod": "prisma generate && next build",
+    "start": "next start",
+    "start:prod": "pm2 start ecosystem.config.js --env production",
+    "deploy": "prisma generate && next build && prisma migrate deploy && pm2 reload auratrix-store --update-env",
+    "logs": "pm2 logs auratrix-store --lines 100",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:use:postgres": "node scripts/switch-db.mjs postgres",
+    "db:use:mysql": "node scripts/switch-db.mjs mysql",
+    "db:use:sqlite": "node scripts/switch-db.mjs sqlite"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "@fortawesome/free-brands-svg-icons": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@prisma/client": "^5.19.0",
+    "@types/jszip": "^3.4.0",
+    "bcryptjs": "^2.4.3",
+    "jszip": "^3.10.1",
+    "next": "14.2.5",
+    "next-auth": "^4.24.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^3.10.1",
+    "resend": "^6.22.0",
+    "xlsx": "^0.18.5",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "prisma": "^5.19.0",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,336 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          String    @default("USER") // ADMIN, MODERATOR, USER
+  permissions   String    @default("[]") // JSON string of custom permissions e.g. ["manage_products", "manage_orders"]
+  loyaltyPoints Int       @default(0)
+  phone         String?
+  state         String?   // Governorate (المحافظة)
+  city          String?   // City/Area (المدينة/المنطقة)
+  address       String?   // Detailed street address (تفاصيل الشارع)
+  referralCode  String?   @unique // Unique referral code e.g. AUR-XXXXXX
+  referredById  String?   // ID of user who referred this user
+  referredBy    User?     @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals     User[]    @relation("UserReferrals")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]
+  reviews       Review[]
+  addresses     Address[]
+  returnRequests ReturnRequest[]
+  referralsMade  ReferralRecord[] @relation("ReferrerRecords")
+  referralReceived ReferralRecord? @relation("ReferredUserRecord")
+}
+
+model Address {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String   @default("المنزل") // e.g. Home, Work, Other
+  addressType   String   @default("HOME") // HOME | WORK | OTHER
+  recipientName String?
+  phone         String
+  state         String?  // Governorate (المحافظة)
+  city          String   // City/Area (المدينة/المنطقة)
+  streetAddress String   // Detailed street address
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  slug        String     @unique
+  description String?
+  image       String?
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]
+  createdAt   DateTime   @default(now())
+}
+
+model Product {
+  id              String           @id @default(uuid())
+  title           String
+  description     String
+  price           Float
+  discountPercent Float            @default(0)
+  stockQuantity   Int              @default(0)
+  images          String           @default("[]") // JSON string array of image URLs
+  averageRating   Float            @default(0)
+  ratingCount     Int              @default(0)
+  saleEndsAt      DateTime?        // Flash sale end datetime (Phase 6)
+  categories      Category[]
+  orderItems      OrderItem[]
+  variants        ProductVariant[]
+  reviews         Review[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model ProductVariant {
+  id            String      @id @default(uuid())
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  colorName     String
+  colorHex      String      @default("#6366f1")
+  stockQuantity Int         @default(0)
+  image         String?
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Review {
+  id              String    @id @default(uuid())
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  authorName      String
+  authorEmail     String?
+  rating          Int       @default(5) // 1 to 5
+  comment         String
+  isVerified      Boolean   @default(true)
+  status          String    @default("APPROVED") // PENDING | APPROVED | REJECTED
+  adminReply      String?   // Optional store response shown below review
+  adminRepliedAt  DateTime? // When the reply was posted
+  createdAt       DateTime  @default(now())
+}
+
+model Order {
+  id                String         @id @default(uuid())
+  userId            String?        // Nullable for Guest checkout
+  user              User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  guestInfo         String?        // JSON string: { name, phone, address, email, city }
+  totalAmount       Float
+  promoCode         String?
+  discountAmount    Float          @default(0)
+  pointsUsed        Int            @default(0)
+  pointsEarned      Int            @default(0)
+  paymentMethod     String         @default("COD") // COD, CARD, INSTAPAY, FAWRY
+  paymentStatus     String         @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  paymentProof      String?        // URL of transfer screenshot / proof
+  depositAmount     Float          @default(0)
+  depositStatus     String         @default("NONE") // NONE, PENDING_PROOF, VERIFIED, WAIVED
+  remainingAmount   Float          @default(0)
+  trackingNumber    String?
+  estimatedDelivery DateTime?      // Admin-set estimated delivery date
+  status            String         @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  referralCode      String?        // Referral code used when placing this order
+  adminNotes        String?        // Internal staff / team notes (JSON or text)
+  orderItems        OrderItem[]
+  returnRequests    ReturnRequest[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model PromoCode {
+  id             String    @id @default(uuid())
+  code           String    @unique
+  discountType   String    @default("PERCENTAGE") // PERCENTAGE | FIXED
+  discountValue  Float
+  description    String?   @default("")
+  minOrderAmount Float     @default(0)
+  maxUses        Int?      // Total max uses across all users
+  maxUsesPerUser Int?      // Max uses per individual user/fingerprint (null = unlimited)
+  usedCount      Int       @default(0)
+  expiresAt      DateTime?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model OrderItem {
+  id        String          @id @default(uuid())
+  orderId   String
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  colorName String?
+  quantity  Int
+  price     Float
+}
+
+model PromoCodeIpUsage {
+  id            String   @id @default(uuid())
+  code          String   // The promo code used
+  ip            String   // Client IP address
+  fingerprintId String   @default("") // Browser-generated UUID stored in localStorage
+  usedAt        DateTime @default(now())
+
+  @@index([code, ip])
+  @@index([code, fingerprintId])
+}
+
+model ReturnRequest {
+  id              String    @id @default(uuid())
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  reason          String    // e.g. DEFECTIVE, WRONG_ITEM, NOT_AS_DESCRIBED, CHANGED_MIND, OTHER
+  reasonDetails   String?   // Additional description
+  refundMethod    String    @default("ORIGINAL") // ORIGINAL, WALLET_POINTS, INSTAPAY, BANK
+  refundDetails   String?   // Bank/instapay account details if needed
+  images          String    @default("[]") // JSON array of proof images
+  status          String    @default("REQUESTED") // REQUESTED, APPROVED, REFUNDED, REJECTED
+  adminNotes      String?   // Internal admin comment
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
+}
+
+model ReferralRecord {
+  id              String    @id @default(uuid())
+  referrerId      String
+  referrer        User      @relation("ReferrerRecords", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUserId  String    @unique
+  referredUser    User      @relation("ReferredUserRecord", fields: [referredUserId], references: [id], onDelete: Cascade)
+  orderId         String?   // The first order placed by the referred user
+  status          String    @default("PENDING") // PENDING, CONVERTED, REWARDED
+  rewardPoints    Int       @default(0)    // Points awarded to referrer
+  discountGiven   Float     @default(0)    // Discount given to referred user
+  createdAt       DateTime  @default(now())
+
+  @@index([referrerId])
+  @@index([status])
+}
+
+model StoreSettings {
+  id                          String   @id @default("default")
+  storeName                   String   @default("Store")
+  storeLogo                   String   @default("")
+  defaultCurrency             String   @default("USD")
+  defaultLanguage             String   @default("ar")
+  defaultTheme                String   @default("light")
+  lightBgPrimary              String   @default("#f8fafc")
+  lightBgSurface              String   @default("#ffffff")
+  lightTextPrimary            String   @default("#0f172a")
+  lightTextSecondary          String   @default("#475569")
+  lightAccentColor            String   @default("#6366f1")
+  darkBgPrimary               String   @default("#0b0f19")
+  darkBgSurface               String   @default("#111827")
+  darkTextPrimary             String   @default("#ffffff")
+  darkTextSecondary           String   @default("#9ca3af")
+  darkAccentColor             String   @default("#6366f1")
+  fontFamily                  String   @default("sans-serif")
+  fontSize                    String   @default("medium")
+  announcementEnabled         Boolean  @default(false)
+  announcementText            String   @default("🎉 خصم مميز على جميع المنتجات!")
+  contactEmail                String   @default("support@store.com")
+  contactPhone                String   @default("+20 10 0000 0000")
+  socialFacebook              String   @default("https://facebook.com")
+  socialFacebookEnabled       Boolean  @default(true)
+  socialInstagram             String   @default("https://instagram.com")
+  socialInstagramEnabled      Boolean  @default(true)
+  socialTwitter               String   @default("https://twitter.com")
+  socialTwitterEnabled        Boolean  @default(true)
+  socialTikTok                String   @default("https://tiktok.com")
+  socialTikTokEnabled         Boolean  @default(true)
+  socialWhatsApp              String   @default("https://wa.me/201000000000")
+  socialWhatsAppEnabled       Boolean  @default(true)
+  maintenanceMode             Boolean  @default(false)
+  maintenanceMessage          String   @default("المتجر تحت الصيانة حالياً وسنعود قريباً")
+  shippingFee                 Float    @default(0)
+  taxRate                     Float    @default(0)
+  loyaltyEnabled              Boolean  @default(true)
+  pointsPerDollar             Float    @default(1.0)
+  pointsRedemptionRate        Float    @default(20.0)
+  minPointsToRedeem           Int      @default(20)
+  lowStockThreshold           Int      @default(5)
+  popupEnabled                Boolean  @default(true)
+  popupTitle                  String   @default("🎉 عرض خاص لزوارنا! | Special Offer for You!")
+  popupText                   String   @default("استمتع بخصم إضافي 10% على طلبك القادم | Enjoy an extra 10% off your next order")
+  popupDiscountCode           String   @default("WELCOME10")
+  // Courier tracking (Phase 2)
+  courierTrackingEnabled      Boolean  @default(false)
+  courierProvider             String   @default("aramex") // aramex | egypt_post | bosta | custom
+  courierTrackingUrlTemplate  String   @default("") // e.g. https://www.aramex.com/track/results?mode=0&ShipmentNumber={trackingNumber}
+  // Email Notifications (Phase 5)
+  emailNotificationsEnabled   Boolean  @default(false)
+  emailProvider               String   @default("resend")
+  resendApiKey                String   @default("")
+  fromEmail                   String   @default("orders@store.com")
+  adminNotifyEmail            String   @default("admin@store.com")
+  notifyOnNewOrder            Boolean  @default(true)
+  notifyOnStatusChange        Boolean  @default(true)
+  // Referral Program
+  referralEnabled             Boolean  @default(true)
+  referralRefereeDiscount     Float    @default(10.0) // % discount for referred user on first order
+  referralReferrerPoints      Int      @default(50)   // Loyalty points for referrer upon conversion
+  // Return / Refund Policy
+  returnWindowDays            Int      @default(14)   // Days within which returns are accepted
+  // Automated Scheduled Backup & Retention (Phase 7)
+  autoBackupEnabled           Boolean  @default(false)
+  autoBackupFrequency         String   @default("daily") // daily | every_3_days | weekly | every_12_hours
+  autoBackupScope             String   @default("full")  // full | db_only | media_only
+  autoBackupRetentionDays     Int      @default(7)       // Delete backups older than N days (default 7 = 1 week)
+  autoBackupTime              String   @default("02:00") // Time of day for daily backups
+  lastAutoBackupAt            DateTime?
+
+  // Payment Methods & Gateway Settings
+  paymentCodEnabled           Boolean  @default(true)
+  paymentCodExtraFee          Float    @default(0)
+  paymentCodInstructions      String   @default("")
+  paymentInstapayEnabled      Boolean  @default(true)
+  paymentInstapayAddress      String   @default("store@instapay")
+  paymentInstapayPhone        String   @default("")
+  paymentInstapayInstructions String   @default("")
+  paymentFawryEnabled         Boolean  @default(true)
+  paymentFawryMerchantCode    String   @default("")
+  paymentFawrySecurityKey     String   @default("")
+  paymentFawryTestMode        Boolean  @default(true)
+  paymentFawryInstructions    String   @default("")
+  paymentCardEnabled          Boolean  @default(true)
+  paymentCardGateway          String   @default("stripe") // stripe | paymob | fawry | tap | custom
+  paymentCardPublishableKey   String   @default("")
+  paymentCardSecretKey        String   @default("")
+  paymentCardTestMode         Boolean  @default(true)
+  paymentCardInstructions     String   @default("")
+  paymentWalletsEnabled       Boolean  @default(false)
+  paymentWalletsNumber        String   @default("")
+  paymentWalletsInstructions  String   @default("")
+
+  // Order Deposit & Anti-Cancellation Settings
+  depositEnabled              Boolean  @default(false)
+  depositType                 String   @default("FIXED") // FIXED | PERCENTAGE | SHIPPING_ONLY
+  depositValue                Float    @default(50.0)
+  depositAppliesTo            String   @default("COD") // COD | ALL
+  depositMinOrderTotal        Float    @default(0.0)
+  depositInstructions         String   @default("")
+  depositPolicyText           String   @default("")
+
+  updatedAt                   DateTime @updatedAt
+}
+
+model PageView {
+  id        String   @id @default(uuid())
+  path      String
+  referrer  String?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+}

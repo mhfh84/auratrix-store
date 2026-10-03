@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== LIGHT MODE (default) ===== */
+:root {
+  --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --border-focus: #6366f1;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-card-bg: rgba(248, 250, 252, 0.9);
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-hover: #94a3b8;
+}
+
+/* ===== DARK MODE ===== */
+.dark {
+  --bg-primary: #0b0f19;
+  --bg-surface: #111827;
+  --bg-card: #111827;
+  --bg-card-hover: #1f2937;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #1f2937;
+  --border-focus: #6366f1;
+  --glass-bg: rgba(17, 24, 39, 0.75);
+  --glass-card-bg: rgba(31, 41, 55, 0.6);
+  --scrollbar-track: #0b0f19;
+  --scrollbar-thumb: #1f2937;
+  --scrollbar-hover: #374151;
+}
+
+body {
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@layer utilities {
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+  }
+
+  .glass-card {
+    background: var(--bg-surface, var(--glass-card-bg));
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    transition: all 0.25s ease-in-out;
+  }
+
+  .glass-card:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.1);
+  }
+
+  .theme-bg {
+    background-color: var(--bg-primary);
+  }
+
+  .theme-surface {
+    background-color: var(--bg-surface);
+  }
+
+  .theme-card {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+  }
+
+  .theme-text {
+    color: var(--text-primary);
+  }
+
+  .theme-text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .theme-border {
+    border-color: var(--border-color);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+}
+
+/* Smooth theme transition */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.15s;
+  transition-timing-function: ease;
+}
+
+/* Override transition for animated elements */
+button, a {
+  transition-duration: 0.2s;
+}
+
+/* ===== CAROUSEL AUTO-SCROLL ANIMATIONS ===== */
+@keyframes scroll-ltr {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes scroll-rtl {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(50%, 0, 0); }
+}
+
+.carousel-track-ltr {
+  will-change: transform;
+  animation: scroll-ltr 40s linear infinite;
+}
+
+.carousel-track-ltr:hover {
+  animation-play-state: paused;
+}
+
+.carousel-track-rtl {
+  will-change: transform;
+  animation: scroll-rtl 40s linear infinite;
+}
+
+.carousel-track-rtl:hover {
+  animation-play-state: paused;
+}
+
+/* ===== PRINT / INVOICE & SHIPPING FLYER STYLES ===== */
+@media print {
+  body {
+    background: white !important;
+    color: #0f172a !important;
+  }
+
+  /* Hide print-hidden UI elements like navbars, toolbars, buttons */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset body styling for print */
+  body > *:not(#print-portal):not(:has(#printable-shipping-flyer)):not(:has(#printable-invoice)) {
+    display: none !important;
+  }
+
+  /* Un-hide the print portal root */
+  #print-portal {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: white;
+  }
+
+  /* Show and style the printable invoice area */
+  #printable-invoice {
+    display: block !important;
+    width: 100%;
+    max-width: 100%;
+    padding: 10mm !important;
+    margin: 0 !important;
+    background: white !important;
+    color: #1e293b !important;
+    font-size: 11pt !important;
+    font-family: 'Segoe UI', Arial, sans-serif !important;
+  }
+
+  #printable-invoice * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+  }
+
+  /* Show and style the printable shipping flyer */
+  #printable-shipping-flyer {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    background: white !important;
+    color: #000000 !important;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  }
+
+  #printable-shipping-flyer * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+  }
+
+  /* Page breaks */
+  #printable-invoice table,
+  #printable-shipping-flyer table {
+    page-break-inside: avoid;
+  }
+
+  @page {
+    size: auto;
+    margin: 8mm;
+  }
+}

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGradMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="primaryGradMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8" />
+      <stop offset="50%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+    <linearGradient id="accentGradMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <filter id="glowMask" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Full bleed background for maskable safe-zone (radius is applied by OS) -->
+  <rect width="512" height="512" fill="url(#bgGradMask)" />
+
+  <!-- Center Scaled Emblem within 80% safe zone (410px inner box) -->
+  <g transform="translate(51, 51) scale(0.8)">
+    <!-- Shopping Bag Handle Accent -->
+    <path d="M196 180 C 196 125, 316 125, 316 180" fill="none" stroke="url(#accentGradMask)" stroke-width="22" stroke-linecap="round" />
+    
+    <!-- Outer Stylized "A" Triangle / Wings -->
+    <path d="M256 120 L380 370 L320 370 L256 240 L192 370 L132 370 Z" fill="url(#primaryGradMask)" filter="url(#glowMask)" />
+    
+    <!-- Inner Diamond Core -->
+    <polygon points="256,190 295,270 256,320 217,270" fill="url(#accentGradMask)" />
+    <polygon points="256,210 280,265 256,300 232,265" fill="#ffffff" opacity="0.85" />
+    
+    <!-- Crossbar Glow Line -->
+    <line x1="165" y1="330" x2="347" y2="330" stroke="url(#accentGradMask)" stroke-width="12" stroke-linecap="round" />
+
+    <!-- Brand Subtext Dots -->
+    <circle cx="216" cy="425" r="6" fill="#818cf8" />
+    <circle cx="256" cy="425" r="8" fill="#38bdf8" />
+    <circle cx="296" cy="425" r="6" fill="#818cf8" />
+  </g>
+</svg>

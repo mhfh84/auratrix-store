@@ -1,0 +1,85 @@
+{
+  "name": "أوراتريكس ستور | AURATRIX STORE",
+  "short_name": "Auratrix",
+  "description": "منصة تجارة إلكترونية متكاملة مع دفع كزائر ولوحة تحكم إدارية وعروض حصرية | Full-Stack E-Commerce Store",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "scope": "/",
+  "categories": ["shopping", "ecommerce", "lifestyle", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "العروض والخصومات | Deals",
+      "short_name": "Deals",
+      "description": "استكشف أحدث العروض والخصومات الحصرية",
+      "url": "/deals",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "جميع المنتجات | Products",
+      "short_name": "Products",
+      "description": "تصفح كتالوج المنتجات الكامل",
+      "url": "/products",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "تتبع الطلب | Track Order",
+      "short_name": "Track",
+      "description": "تتبع حالة شحنتك وطلبك برقم التتبع",
+      "url": "/track-order",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "قائمة الرغبات | Wishlist",
+      "short_name": "Wishlist",
+      "description": "المنتجات المحفوظة في قائمة الأمنيات",
+      "url": "/wishlist",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
