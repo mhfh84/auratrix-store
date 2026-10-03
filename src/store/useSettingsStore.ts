@@ -294,7 +294,7 @@ export const useSettingsStore = create<SettingsStore>()(
 
       fetchSettings: async () => {
         try {
-          const res = await fetch('/api/settings');
+          const res = await fetch('/api/settings', { cache: 'no-store' });
           if (res.ok) {
             const data: ServerStoreSettings = await res.json();
             const { hasVisited, hasCustomLanguage, hasCustomTheme, hasCustomCurrency } = get();
@@ -309,12 +309,12 @@ export const useSettingsStore = create<SettingsStore>()(
                 hasVisited: true,
               });
             } else {
-              // Subsequent visits: preserve user selections for theme, language, and currency
+              // Subsequent visits: preserve user selections if explicitly customized, otherwise apply admin store defaults
               set((state) => ({
                 serverSettings: { ...state.serverSettings, ...data },
-                language: hasCustomLanguage ? state.language : state.language,
-                theme: hasCustomTheme ? state.theme : state.theme,
-                currency: hasCustomCurrency ? state.currency : state.currency,
+                language: hasCustomLanguage ? state.language : (data.defaultLanguage || state.language),
+                theme: hasCustomTheme ? state.theme : (data.defaultTheme || state.theme),
+                currency: hasCustomCurrency ? state.currency : (data.defaultCurrency || state.currency),
               }));
             }
           }
@@ -325,7 +325,7 @@ export const useSettingsStore = create<SettingsStore>()(
 
       forceStoreSettings: async () => {
         try {
-          const res = await fetch('/api/settings');
+          const res = await fetch('/api/settings', { cache: 'no-store' });
           if (res.ok) {
             const data: ServerStoreSettings = await res.json();
             set({

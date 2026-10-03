@@ -69,7 +69,24 @@ export default function AdminSettingsClient() {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Sync form data when serverSettings load
+  // Fetch latest live settings directly from DB on mount
+  useEffect(() => {
+    let active = true;
+    fetch('/api/settings', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && active) {
+          setFormData(data);
+          setServerSettings(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [setServerSettings]);
+
+  // Sync form data if serverSettings update from broadcast or parent
   useEffect(() => {
     if (serverSettings) {
       setFormData(serverSettings);

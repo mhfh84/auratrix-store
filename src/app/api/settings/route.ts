@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -7,6 +8,7 @@ import { hasPermission } from '@/lib/permissions';
 import { getLiveExchangeRates } from '@/lib/exchangeRates';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Helper to get or initialize default settings
 async function getOrCreateSettings() {
@@ -91,10 +93,28 @@ export async function GET(request: Request) {
         paymentFawrySecurityKey: _paymentFawrySecurityKey,
         ...publicSettings
       } = settings as any;
-      return NextResponse.json({ ...publicSettings, exchangeRates });
+      return NextResponse.json(
+        { ...publicSettings, exchangeRates },
+        {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'CDN-Cache-Control': 'no-store',
+            'Vercel-CDN-Cache-Control': 'no-store',
+          },
+        }
+      );
     }
 
-    return NextResponse.json({ ...settings, exchangeRates });
+    return NextResponse.json(
+      { ...settings, exchangeRates },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'CDN-Cache-Control': 'no-store',
+          'Vercel-CDN-Cache-Control': 'no-store',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('Error fetching store settings:', error);
     return NextResponse.json({ error: 'Failed to fetch store settings' }, { status: 500 });
@@ -235,6 +255,12 @@ export async function PUT(request: Request) {
         depositPolicyText: body.depositPolicyText !== undefined ? body.depositPolicyText : undefined,
       },
     });
+
+    try {
+      revalidatePath('/', 'layout');
+    } catch (revalErr) {
+      // Ignore background revalidation errors
+    }
 
     return NextResponse.json(updated);
   } catch (error: any) {

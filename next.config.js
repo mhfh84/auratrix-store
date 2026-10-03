@@ -80,13 +80,6 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=86400' },
         ],
       },
-      // Settings API — safe to cache for 60 s on the browser (reduces repeated DB reads)
-      {
-        source: '/api/settings',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=60, stale-while-revalidate=300' },
-        ],
-      },
       // Categories API — rarely changes, cache 2 minutes
       {
         source: '/api/categories',
